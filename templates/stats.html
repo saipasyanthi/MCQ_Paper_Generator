@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block title %}Statistics - MCQ Generator{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>📊 Database Statistics</h2>
+    <p>Overview of your question bank</p>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-box">
+        <h3>{{ total }}</h3>
+        <p>Total Questions</p>
+    </div>
+    <div class="stat-box">
+        <h3>{{ subjects|length }}</h3>
+        <p>Subjects</p>
+    </div>
+</div>
+
+<div class="card" style="margin-top: 20px;">
+    <h2>Questions by Subject</h2>
+    {% for subject, count in subjects.items() %}
+    <div style="margin-bottom: 15px;">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+            <strong>{{ subject }}</strong>
+            <span>{{ count }} questions</span>
+        </div>
+        <div style="background: #e9ecef; height: 20px; border-radius: 10px; overflow: hidden;">
+            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); height: 100%; width: {{ (count / total * 100)|round }}%;"></div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<div class="card">
+    <h2>Questions by Difficulty</h2>
+    <div class="stats-grid">
+        <div class="stat-box" style="background: #28a745;">
+            <h3>{{ difficulties.Easy }}</h3>
+            <p>Easy</p>
+        </div>
+        <div class="stat-box" style="background: #ffc107; color: #333;">
+            <h3>{{ difficulties.Medium }}</h3>
+            <p>Medium</p>
+        </div>
+        <div class="stat-box" style="background: #dc3545;">
+            <h3>{{ difficulties.Hard }}</h3>
+            <p>Hard</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

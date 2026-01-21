@@ -1,0 +1,115 @@
+{
+  "questions": {
+    "1": {
+      "question": "What is the capital of France?",
+      "options": {
+        "A": "London",
+        "B": "Paris",
+        "C": "Berlin",
+        "D": "Madrid"
+      },
+      "correct_answer": "B",
+      "explanation": "Paris is the capital and most populous city of France, located in the north-central part of the country on the Seine River."
+    },
+    "2": {
+      "question": "Which planet is known as the Red Planet?",
+      "options": {
+        "A": "Venus",
+        "B": "Jupiter",
+        "C": "Mars",
+        "D": "Saturn"
+      },
+      "correct_answer": "C",
+      "explanation": "Mars is often called the Red Planet due to its reddish appearance caused by iron oxide (rust) on its surface."
+    },
+    "3": {
+      "question": "What is the chemical symbol for Gold?",
+      "options": {
+        "A": "Go",
+        "B": "Gd",
+        "C": "Au",
+        "D": "Ag"
+      },
+      "correct_answer": "C",
+      "explanation": "The chemical symbol for Gold is Au, derived from its Latin name 'Aurum'."
+    },
+    "4": {
+      "question": "Who wrote 'Romeo and Juliet'?",
+      "options": {
+        "A": "Christopher Marlowe",
+        "B": "William Shakespeare",
+        "C": "Ben Jonson",
+        "D": "John Webster"
+      },
+      "correct_answer": "B",
+      "explanation": "William Shakespeare wrote 'Romeo and Juliet', one of his most famous tragedies, likely written between 1594 and 1596."
+    },
+    "5": {
+      "question": "What is the largest ocean on Earth?",
+      "options": {
+        "A": "Atlantic Ocean",
+        "B": "Indian Ocean",
+        "C": "Arctic Ocean",
+        "D": "Pacific Ocean"
+      },
+      "correct_answer": "D",
+      "explanation": "The Pacific Ocean is the largest ocean on Earth, covering approximately 165 million square kilometers."
+    },
+    "6": {
+      "question": "Which element has the atomic number 6?",
+      "options": {
+        "A": "Nitrogen",
+        "B": "Oxygen",
+        "C": "Carbon",
+        "D": "Boron"
+      },
+      "correct_answer": "C",
+      "explanation": "Carbon has atomic number 6, meaning it has 6 protons in its nucleus. It's the basis for all organic compounds."
+    },
+    "7": {
+      "question": "In which year did the Titanic sink?",
+      "options": {
+        "A": "1912",
+        "B": "1915",
+        "C": "1920",
+        "D": "1925"
+      },
+      "correct_answer": "A",
+      "explanation": "The RMS Titanic sank on April 15, 1912, after colliding with an iceberg during its maiden voyage."
+    },
+    "8": {
+      "question": "What is the smallest prime number?",
+      "options": {
+        "A": "1",
+        "B": "2",
+        "C": "3",
+        "D": "5"
+      },
+      "correct_answer": "B",
+      "explanation": "The smallest prime number is 2. It is the only even prime number and the only prime that is not odd."
+    },
+    "9": {
+      "question": "Which country is home to the Great Wall?",
+      "options": {
+        "A": "Japan",
+        "B": "India",
+        "C": "China",
+        "D": "Vietnam"
+      },
+      "correct_answer": "C",
+      "explanation": "The Great Wall of China is one of the most impressive architectural feats, built over several centuries to protect Chinese states."
+    },
+    "10": {
+      "question": "What is the powerhouse of the cell?",
+      "options": {
+        "A": "Nucleus",
+        "B": "Mitochondria",
+        "C": "Ribosome",
+        "D": "Golgi apparatus"
+      },
+      "correct_answer": "B",
+      "explanation": "Mitochondria is known as the powerhouse of the cell because it is responsible for producing energy (ATP) through cellular respiration."
+    }
+  },
+  "next_id": 11
+}

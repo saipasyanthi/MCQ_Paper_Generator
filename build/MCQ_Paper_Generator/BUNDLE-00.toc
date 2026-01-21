@@ -1,0 +1,3 @@
+([('MCQ_Paper_Generator',
+   '/Users/pasi/MCQ_Paper_Generator/dist/MCQ_Paper_Generator',
+   'EXECUTABLE')],)

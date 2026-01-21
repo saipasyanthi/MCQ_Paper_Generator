@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% block title %}Add Question - MCQ Generator{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>➕ Add New Question</h2>
+    <p>Manually add a multiple-choice question to the database</p>
+    
+    <form id="addQuestionForm">
+        <div class="form-group">
+            <label>Subject</label>
+            <input type="text" name="subject" placeholder="e.g., Mathematics" required>
+        </div>
+        
+        <div class="form-group">
+            <label>Chapter/Topic</label>
+            <input type="text" name="chapter" placeholder="e.g., Chapter 1" required>
+        </div>
+        
+        <div class="form-group">
+            <label>Difficulty Level</label>
+            <select name="difficulty" required>
+                <option value="Easy">Easy</option>
+                <option value="Medium" selected>Medium</option>
+                <option value="Hard">Hard</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label>Question</label>
+            <textarea name="question" placeholder="Enter the question text" required></textarea>
+        </div>
+        
+        <div class="form-group">
+            <label>Option A</label>
+            <input type="text" name="option1" placeholder="First option" required>
+        </div>
+        
+        <div class="form-group">
+            <label>Option B</label>
+            <input type="text" name="option2" placeholder="Second option" required>
+        </div>
+        
+        <div class="form-group">
+            <label>Option C</label>
+            <input type="text" name="option3" placeholder="Third option" required>
+        </div>
+        
+        <div class="form-group">
+            <label>Option D</label>
+            <input type="text" name="option4" placeholder="Fourth option" required>
+        </div>
+        
+        <div class="form-group">
+            <label>Correct Answer</label>
+            <select name="correct_answer" required>
+                <option value="0">A</option>
+                <option value="1">B</option>
+                <option value="2">C</option>
+                <option value="3">D</option>
+            </select>
+        </div>
+        
+        <button type="submit" class="btn btn-primary btn-block">Add Question</button>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.getElementById('addQuestionForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    showLoading();
+    
+    try {
+        const response = await fetch('/add_question', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const data = await response.json();
+        hideLoading();
+        
+        if (data.success) {
+            showAlert(data.message, 'success');
+            this.reset();
+        } else {
+            showAlert(data.error || 'Failed to add question', 'error');
+        }
+    } catch (error) {
+        hideLoading();
+        showAlert('Error: ' + error.message, 'error');
+    }
+});
+</script>
+{% endblock %}

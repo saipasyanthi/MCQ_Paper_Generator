@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>{% block title %}MCQ Paper Generator{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📝 MCQ Paper Generator</h1>
+            <p>Create professional question papers instantly</p>
+        </div>
+        
+        <div class="nav">
+            <a href="/" {% if request.path == '/' %}class="active"{% endif %}>🏠 Home</a>
+            <a href="/upload" {% if request.path == '/upload' %}class="active"{% endif %}>📤 Upload PDF</a>
+            <a href="/add_question" {% if request.path == '/add_question' %}class="active"{% endif %}>➕ Add Question</a>
+            <a href="/questions" {% if request.path == '/questions' %}class="active"{% endif %}>📚 Questions</a>
+            <a href="/generate" {% if request.path == '/generate' %}class="active"{% endif %}>⚡ Generate</a>
+            <a href="/stats" {% if request.path == '/stats' %}class="active"{% endif %}>📊 Stats</a>
+        </div>
+        
+        <div class="content">
+            {% block content %}{% endblock %}
+        </div>
+        
+        <div class="footer">
+            © 2026 MCQ Paper Generator | Licensed Software
+        </div>
+    </div>
+    
+    <script>
+        // Show alerts
+        function showAlert(message, type = 'info') {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type}`;
+            alertDiv.textContent = message;
+            
+            const content = document.querySelector('.content');
+            content.insertBefore(alertDiv, content.firstChild);
+            
+            setTimeout(() => alertDiv.remove(), 5000);
+        }
+        
+        // Show loading
+        function showLoading() {
+            const loading = document.createElement('div');
+            loading.className = 'loading';
+            loading.id = 'loading-overlay';
+            loading.innerHTML = '<div class="spinner"></div><p>Processing...</p>';
+            document.body.appendChild(loading);
+        }
+        
+        function hideLoading() {
+            const loading = document.getElementById('loading-overlay');
+            if (loading) loading.remove();
+        }
+    </script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

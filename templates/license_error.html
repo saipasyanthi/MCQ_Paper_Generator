@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block title %}License Error - MCQ Generator{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2 style="color: #dc3545;">🔒 License Required</h2>
+    
+    <div class="alert alert-error">
+        <strong>Error:</strong> {{ message }}
+    </div>
+    
+    <p>This application requires a valid license to operate.</p>
+    
+    <h3>How to activate:</h3>
+    <ol style="line-height: 2;">
+        <li>Obtain a valid <code>license.json</code> file</li>
+        <li>Place it in the application directory</li>
+        <li>Restart the application</li>
+    </ol>
+    
+    <p style="margin-top: 20px;">
+        <strong>Need a license?</strong> Contact your system administrator or software vendor.
+    </p>
+</div>
+{% endblock %}

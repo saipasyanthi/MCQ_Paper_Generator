@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card">
+    <h2>Welcome to MCQ Paper Generator</h2>
+    <p>Generate professional multiple-choice question papers with ease. Perfect for exams, tests, and assessments.</p>
+    
+    <div class="alert alert-info" style="margin-top: 20px;">
+        {{ stats.license_message }}
+    </div>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-box">
+        <h3>{{ stats.total_questions }}</h3>
+        <p>Total Questions</p>
+    </div>
+    <div class="stat-box">
+        <h3>{{ stats.subjects }}</h3>
+        <p>Subjects</p>
+    </div>
+    <div class="stat-box">
+        <h3>⚡</h3>
+        <p>Quick Generate</p>
+    </div>
+</div>
+
+<div class="card" style="margin-top: 20px;">
+    <h2>Quick Start Guide</h2>
+    <ol style="line-height: 2;">
+        <li><strong>Upload PDF</strong> - Import questions from existing PDFs</li>
+        <li><strong>Add Questions</strong> - Manually add questions to database</li>
+        <li><strong>View Questions</strong> - Browse and manage your question bank</li>
+        <li><strong>Generate Paper</strong> - Create customized question papers</li>
+        <li><strong>Download</strong> - Get Word documents for printing</li>
+    </ol>
+</div>
+
+<div class="card">
+    <h2>Features</h2>
+    <ul style="line-height: 2;">
+        <li>✅ Mobile & Tablet Friendly</li>
+        <li>✅ PDF Question Extraction</li>
+        <li>✅ Subject & Chapter Organization</li>
+        <li>✅ Automatic Answer Key Generation</li>
+        <li>✅ Random Question Selection</li>
+        <li>✅ Professional Document Formatting</li>
+    </ul>
+</div>
+{% endblock %}

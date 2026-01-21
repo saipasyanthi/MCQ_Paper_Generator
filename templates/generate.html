@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block title %}Generate Paper - MCQ Generator{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>⚡ Generate MCQ Paper</h2>
+    <p>Create a customized multiple-choice question paper</p>
+    
+    <form id="generateForm">
+        <div class="form-group">
+            <label>College/Institution Name</label>
+            <input type="text" name="college_name" placeholder="e.g., ABC College" required>
+        </div>
+        
+        <div class="form-group">
+            <label>Exam Name</label>
+            <input type="text" name="exam_name" placeholder="e.g., Mid-Term Examination" required>
+        </div>
+        
+        <div class="form-group">
+            <label>Exam Date</label>
+            <input type="date" name="exam_date" required>
+        </div>
+        
+        <div class="form-group">
+            <label>Subject</label>
+            <select name="subject" required>
+                <option value="All">All Subjects</option>
+                {% for subject in subjects %}
+                <option value="{{ subject }}">{{ subject }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label>Number of Questions</label>
+            <input type="number" name="num_questions" value="20" min="1" max="100" required>
+        </div>
+        
+        <button type="submit" class="btn btn-primary btn-block">Generate Paper</button>
+    </form>
+</div>
+
+<div id="resultCard" class="card" style="display: none;">
+    <h2>✅ Papers Generated Successfully!</h2>
+    <p>Your question paper and answer key are ready to download.</p>
+    
+    <div class="download-links">
+        <a id="downloadQuestion" href="#" class="btn btn-success download-link btn-block">📄 Download Question Paper</a>
+        <a id="downloadAnswer" href="#" class="btn btn-secondary download-link btn-block">📋 Download Answer Key</a>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.getElementById('generateForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    showLoading();
+    
+    try {
+        const response = await fetch('/generate', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const data = await response.json();
+        hideLoading();
+        
+        if (data.success) {
+            showAlert(data.message, 'success');
+            
+            // Show download links
+            document.getElementById('downloadQuestion').href = '/download/' + data.question_paper;
+            document.getElementById('downloadAnswer').href = '/download/' + data.answer_key;
+            document.getElementById('resultCard').style.display = 'block';
+            
+            // Scroll to result
+            document.getElementById('resultCard').scrollIntoView({ behavior: 'smooth' });
+        } else {
+            showAlert(data.error || 'Generation failed', 'error');
+        }
+    } catch (error) {
+        hideLoading();
+        showAlert('Error: ' + error.message, 'error');
+    }
+});
+
+// Set today's date as default
+document.querySelector('input[type="date"]').valueAsDate = new Date();
+</script>
+{% endblock %}
