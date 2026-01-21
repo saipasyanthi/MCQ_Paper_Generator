@@ -34,10 +34,23 @@ jobs:
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
 
+      - name: Accept Android SDK licenses
+        run: |
+          yes | sdkmanager --licenses
+
       - name: Install Android SDK components
         run: |
           sdkmanager "platform-tools" "platforms;android-33" "build-tools;33.0.2" "ndk;25.2.9519653"
-          yes | sdkmanager --licenses || true
+          echo "✓ SDK components installed"
+          # Verify build-tools
+          if [ -d "$ANDROID_SDK_ROOT/build-tools/33.0.2" ]; then
+            echo "✓ Build-tools 33.0.2 found"
+            ls -la "$ANDROID_SDK_ROOT/build-tools/33.0.2/aidl" 2>/dev/null && echo "✓ AIDL found" || echo "✗ AIDL not found"
+          else
+            echo "✗ Build-tools 33.0.2 directory missing"
+            ls -la "$ANDROID_SDK_ROOT/build-tools/" || true
+            exit 1
+          fi
 
       - name: Verify Android environment
         env:
