@@ -3,7 +3,6 @@ title = MCQ Paper Generator
 package.name = mcqpaper
 package.domain = org.example
 version = 0.1.0
-version.regex = ^[0-9]+\.[0-9]+\.[0-9]+$
 source.dir = .
 source.include_exts = py,kv,json,png,jpg,ttf
 requirements = python3,kivy,pypdf2,reportlab
