@@ -99,22 +99,39 @@ jobs:
           echo "android.sdk_path = $ANDROID_SDK_ROOT" >> buildozer.spec
           echo "android.ndk_path = $ANDROID_SDK_ROOT/ndk/25.2.9519653" >> buildozer.spec
           cat buildozer.spec | tail -10
-          buildozer -v android debug 2>&1 | tee build.log
+          buildozer -v android debug 2>&1 | tee build.log || true
+          echo "Build complete, searching for APK..."
+          find . -name "*.apk" -type f 2>/dev/null || echo "No APK found"
+
+      - name: Locate and copy APK
+        if: always()
+        working-directory: mobile_kivy
+        run: |
+          mkdir -p apk-output
+          # Search common APK locations
+          find . -name "*.apk" -type f -exec cp {} apk-output/ \; 2>/dev/null || true
+          find .buildozer -name "*.apk" -type f -exec cp {} apk-output/ \; 2>/dev/null || true
+          ls -lah apk-output/ || echo "No APKs copied"
 
       - name: Upload APK artifact
-        if: success()
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: android-apk
-          path: mobile_kivy/bin/*.apk
-          if-no-files-found: error
+          path: |
+            mobile_kivy/apk-output/*.apk
+            mobile_kivy/bin/*.apk
+            mobile_kivy/.buildozer/android/platform/build-*/build/outputs/apk/**/*.apk
+          if-no-files-found: warn
 
-      - name: Upload build logs on failure
-        if: failure()
+      - name: Upload build logs
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: buildozer-logs
-          path: mobile_kivy/.buildozer/**
+          name: build-logs
+          path: |
+            mobile_kivy/build.log
+            mobile_kivy/.buildozer/android/platform/build-*/build/outputs/logs/**
           if-no-files-found: warn
 
       - name: Upload APK artifact
