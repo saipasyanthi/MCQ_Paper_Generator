@@ -15,6 +15,33 @@ jobs:
         with:
           python-version: '3.11'
 
+      - name: Set up Java 11
+        uses: actions/setup-java@v4
+        with:
+            distribution: 'temurin'
+            java-version: '11'
+
+      - name: Install Android SDK CLI
+        env:
+          ANDROID_SDK_ROOT: ${{ github.workspace }}/android-sdk
+        run: |
+          mkdir -p "$ANDROID_SDK_ROOT/cmdline-tools"
+          cd "$ANDROID_SDK_ROOT/cmdline-tools"
+          curl -sLo tools.zip https://dl.google.com/android/repository/commandlinetools-linux-10406996_latest.zip
+          unzip -q tools.zip
+          mv cmdline-tools latest
+          rm tools.zip
+          yes | "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --licenses
+          yes | "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" "platform-tools" "platforms;android-33" "build-tools;34.0.0"
+
+      - name: Export Android env
+        env:
+          ANDROID_SDK_ROOT: ${{ github.workspace }}/android-sdk
+        run: |
+          echo "ANDROIDSDK=$ANDROID_SDK_ROOT" >> $GITHUB_ENV
+          echo "ANDROIDNDK=$ANDROID_SDK_ROOT/ndk-bundle" >> $GITHUB_ENV
+          echo "PATH=$ANDROID_SDK_ROOT/platform-tools:$ANDROID_SDK_ROOT/build-tools/34.0.0:$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$PATH" >> $GITHUB_ENV
+
       - name: Install build tools
         run: |
           python -m pip install --upgrade pip
@@ -24,6 +51,9 @@ jobs:
         working-directory: mobile_kivy
         env:
           BUILDOZER_WARN_ON_ROOT: '0'
+          ANDROIDSDK: ${{ env.ANDROIDSDK }}
+          ANDROIDNDK: ${{ env.ANDROIDNDK }}
+          ANDROID_SDK_ROOT: ${{ env.ANDROIDSDK }}
         run: |
           buildozer -v android debug
 

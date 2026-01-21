@@ -12,6 +12,7 @@ android.api = 33
 android.minapi = 21
 android.archs = arm64-v8a,armeabi-v7a
 android.permissions = READ_EXTERNAL_STORAGE,WRITE_EXTERNAL_STORAGE,INTERNET
+android.build_tools_version = 34.0.0
 
 # License bundling: copy license.json to assets before build
 # (buildozer will package it with the app)
