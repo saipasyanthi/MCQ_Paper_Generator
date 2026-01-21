@@ -13,6 +13,9 @@ android.minapi = 21
 android.archs = arm64-v8a,armeabi-v7a
 android.permissions = READ_EXTERNAL_STORAGE,WRITE_EXTERNAL_STORAGE,INTERNET
 android.build_tools_version = 33.0.2
+android.skip_update = True
+android.accept_sdk_license = True
+# android.sdk_path and android.ndk_path will be set by CI workflow
 
 # License bundling: copy license.json to assets before build
 # (buildozer will package it with the app)

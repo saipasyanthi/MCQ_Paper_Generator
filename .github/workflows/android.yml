@@ -93,6 +93,12 @@ jobs:
           ANDROID_NDK_ROOT: ${{ env.ANDROID_NDK_ROOT }}
           ANDROID_HOME: ${{ env.ANDROID_SDK_ROOT }}
         run: |
+          # Inject SDK/NDK paths into buildozer.spec
+          echo "" >> buildozer.spec
+          echo "# CI-injected SDK paths" >> buildozer.spec
+          echo "android.sdk_path = $ANDROID_SDK_ROOT" >> buildozer.spec
+          echo "android.ndk_path = $ANDROID_SDK_ROOT/ndk/25.2.9519653" >> buildozer.spec
+          cat buildozer.spec | tail -10
           buildozer -v android debug 2>&1 | tee build.log
 
       - name: Upload APK artifact
