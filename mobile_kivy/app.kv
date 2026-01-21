@@ -1,0 +1,331 @@
+#:kivy 2.3.0
+
+# Global colors for readability on white background
+<Label>:
+    color: 0, 0, 0, 1
+
+<TextInput>:
+    foreground_color: 0, 0, 0, 1
+    cursor_color: 0, 0, 0, 1
+    background_normal: ''
+    background_color: 1, 1, 1, 1
+    canvas.before:
+        Color:
+            rgba: 0.15, 0.15, 0.15, 1
+        Line:
+            width: 1.2
+            rectangle: (self.x, self.y, self.width, self.height)
+
+<Button>:
+    color: 0, 0, 0, 1
+    background_normal: ''
+    background_color: 0.92, 0.92, 0.92, 1
+
+<RootManager>:
+    HomeScreen:
+    GenerateScreen:
+    PDFQuestionScreen:
+
+<HomeScreen>:
+    name: "home"
+    BoxLayout:
+        orientation: "vertical"
+        padding: dp(16)
+        spacing: dp(12)
+        Label:
+            text: "MCQ Paper Generator"
+            font_size: "22sp"
+            bold: True
+            size_hint_y: None
+            height: self.texture_size[1]
+        Label:
+            text: root.license_message or "Checking license..."
+            font_size: "14sp"
+            color: 0.2, 0.2, 0.2, 1
+            size_hint_y: None
+            height: self.texture_size[1] + dp(10)
+        Widget:
+        BoxLayout:
+            size_hint_y: None
+            height: dp(50)
+            spacing: dp(10)
+            Button:
+                text: "Generate Paper"
+                on_release: app.root.current = "generate"
+
+<AddQuestionScreen>:
+    name: "add"
+    subject_input: subject_input
+    chapter_input: chapter_input
+    difficulty_input: difficulty_input
+    question_input: question_input
+    option_a: option_a
+    option_b: option_b
+    option_c: option_c
+    option_d: option_d
+    correct_spinner: correct_spinner
+
+    ScrollView:
+        GridLayout:
+            cols: 1
+            padding: dp(16)
+            spacing: dp(12)
+            size_hint_y: None
+            height: self.minimum_height
+
+            Label:
+                text: "Add Question"
+                font_size: "20sp"
+                bold: True
+
+            TextInput:
+                id: subject_input
+                hint_text: "Subject"
+                size_hint_y: None
+                height: dp(44)
+
+            TextInput:
+                id: chapter_input
+                hint_text: "Chapter"
+                size_hint_y: None
+                height: dp(44)
+
+            Spinner:
+                id: difficulty_input
+                text: "Medium"
+                values: ["Easy", "Medium", "Hard"]
+                size_hint_y: None
+                height: dp(44)
+
+            TextInput:
+                id: question_input
+                hint_text: "Question text"
+                multiline: True
+                size_hint_y: None
+                height: dp(120)
+
+            TextInput:
+                id: option_a
+                hint_text: "Option A"
+                size_hint_y: None
+                height: dp(44)
+            TextInput:
+                id: option_b
+                hint_text: "Option B"
+                size_hint_y: None
+                height: dp(44)
+            TextInput:
+                id: option_c
+                hint_text: "Option C"
+                size_hint_y: None
+                height: dp(44)
+            TextInput:
+                id: option_d
+                hint_text: "Option D"
+                size_hint_y: None
+                height: dp(44)
+
+            Spinner:
+                id: correct_spinner
+                text: "0"
+                values: ["0", "1", "2", "3"]
+                size_hint_y: None
+                height: dp(44)
+
+            Button:
+                text: "Save Question"
+                size_hint_y: None
+                height: dp(50)
+                on_release: app.add_question()
+
+            Button:
+                text: "Back"
+                size_hint_y: None
+                height: dp(50)
+                on_release: app.root.current = "home"
+
+<BankScreen>:
+    name: "bank"
+    on_enter: app.refresh_bank()
+    BoxLayout:
+        orientation: "vertical"
+        padding: dp(12)
+        spacing: dp(10)
+        Label:
+            text: "Question Bank"
+            font_size: "20sp"
+            bold: True
+            size_hint_y: None
+            height: dp(40)
+        ScrollView:
+            GridLayout:
+                id: bank_grid
+                cols: 1
+                spacing: dp(10)
+                padding: dp(4)
+                size_hint_y: None
+                height: self.minimum_height
+        Button:
+            text: "Back"
+            size_hint_y: None
+            height: dp(50)
+            on_release: app.root.current = "home"
+
+<GenerateScreen>:
+    name: "generate"
+    BoxLayout:
+        orientation: "vertical"
+        padding: dp(16)
+        spacing: dp(12)
+        ScrollView:
+            GridLayout:
+                cols: 1
+                padding: dp(4)
+                spacing: dp(10)
+                size_hint_y: None
+                height: self.minimum_height
+                
+                Label:
+                    text: "Paper Generation"
+                    font_size: "18sp"
+                    bold: True
+                    size_hint_y: None
+                    height: dp(30)
+                
+                Label:
+                    text: "College Name:"
+                    size_hint_y: None
+                    height: dp(20)
+                TextInput:
+                    hint_text: "e.g., ABC University"
+                    size_hint_y: None
+                    height: dp(44)
+                    text: app.college_name
+                    on_text: app.college_name = self.text
+                
+                Label:
+                    text: "Exam Name:"
+                    size_hint_y: None
+                    height: dp(20)
+                TextInput:
+                    hint_text: "e.g., Physics - Midterm"
+                    size_hint_y: None
+                    height: dp(44)
+                    text: app.exam_name
+                    on_text: app.exam_name = self.text
+                
+                Label:
+                    text: "Exam Date (DD-MM-YYYY):"
+                    size_hint_y: None
+                    height: dp(20)
+                TextInput:
+                    size_hint_y: None
+                    height: dp(44)
+                    text: app.exam_date
+                    on_text: app.exam_date = self.text
+
+                Label:
+                    text: app.output_dir and f"Output Folder:\n{app.output_dir}" or "Output Folder: (not set)"
+                    size_hint_y: None
+                    height: dp(48)
+                Button:
+                    text: "Select Output Folder"
+                    size_hint_y: None
+                    height: dp(44)
+                    on_release: app.open_output_dir_picker()
+                
+                Label:
+                    text: "Number of Random Questions:"
+                    size_hint_y: None
+                    height: dp(20)
+                Spinner:
+                    text: str(app.num_questions)
+                    values: ["1", "2", "3", "4", "5", "10", "15", "20"]
+                    size_hint_y: None
+                    height: dp(44)
+                    on_text: app.num_questions = int(self.text)
+                
+                Label:
+                    text: ""
+                    size_hint_y: None
+                    height: dp(10)
+                
+                Button:
+                    text: "Add PDF (questions)"
+                    size_hint_y: None
+                    height: dp(50)
+                    on_release: app.open_pdf_picker()
+                
+                Button:
+                    text: "Generate Random Paper"
+                    size_hint_y: None
+                    height: dp(50)
+                    on_release: app.generate_random_paper()
+                
+                Button:
+                    text: "Generate Selected Paper"
+                    size_hint_y: None
+                    height: dp(50)
+                    on_release: app.generate_selected_paper()
+                
+                Button:
+                    text: "View/Select Questions"
+                    size_hint_y: None
+                    height: dp(50)
+                    on_release: app.root.current = "pdf"
+                
+                Button:
+                    text: "Back"
+                    size_hint_y: None
+                    height: dp(50)
+                    on_release: app.root.current = "home"
+
+<PDFQuestionScreen>:
+    name: "pdf"
+    on_enter: app.refresh_pdf_screen()
+    BoxLayout:
+        orientation: "vertical"
+        padding: dp(12)
+        spacing: dp(10)
+        
+        Label:
+            text: "PDF Questions - Check to Select"
+            font_size: "18sp"
+            bold: True
+            size_hint_y: None
+            height: dp(40)
+        
+        Label:
+            text: app.attached_pdf and f"File: {app.attached_pdf.split('/')[-1]}" or "No PDF attached"
+            font_size: "11sp"
+            color: 0.6, 0.6, 0.6, 1
+            size_hint_y: None
+            height: dp(25)
+        
+        ScrollView:
+            do_scroll_x: False
+            do_scroll_y: True
+            GridLayout:
+                id: pdf_grid
+                cols: 1
+                spacing: dp(12)
+                padding: dp(8)
+                size_hint_y: None
+                height: self.minimum_height
+        
+        BoxLayout:
+            size_hint_y: None
+            height: dp(50)
+            spacing: dp(10)
+            Button:
+                text: "Add PDF"
+                on_release: app.open_pdf_picker()
+            Button:
+                text: "Select All"
+                on_release: app.select_all_pdf_questions()
+            Button:
+                text: "Clear All"
+                on_release: app.clear_all_pdf_questions()
+            Button:
+                text: "Back"
+                on_release: app.root.current = "generate"
