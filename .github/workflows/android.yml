@@ -35,8 +35,18 @@ jobs:
         uses: android-actions/setup-android@v3
 
       - name: Accept Android SDK licenses
+        env:
+          ANDROID_SDK_MANAGER_SKIP_UPDATE_CHECK: '1'
         run: |
-          yes | sdkmanager --licenses
+          mkdir -p "$HOME/.android"
+          echo '\ncount=0' > "$HOME/.android/repositories.cfg"
+          # Accept all SDK licenses
+          sdkmanager --update 2>/dev/null || true
+          for lic in Android-SDK-Preview-License Android-SDK-License Google-Play-Services-License; do
+            echo "Accepting $lic..."
+            yes | sdkmanager --licenses 2>&1 | head -20 || true
+          done
+          echo "✓ Licenses configured"
 
       - name: Install Android SDK components
         run: |
@@ -62,6 +72,14 @@ jobs:
           echo "BUILD-TOOLS:" && ls -la "$ANDROID_SDK_ROOT/build-tools/" || true
           echo "AIDL location:" && which aidl || find "$ANDROID_SDK_ROOT/build-tools" -name "aidl" 2>/dev/null || true
 
+      - name: Pre-configure Buildozer
+        run: |
+          mkdir -p "$HOME/.buildozer/android/platform"
+          export ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT
+          export ANDROID_NDK_ROOT=$ANDROID_NDK_ROOT
+          echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT"
+          echo "ANDROID_NDK_ROOT=$ANDROID_NDK_ROOT"
+
       - name: Install build tools
         run: |
           python -m pip install --upgrade pip
@@ -71,8 +89,11 @@ jobs:
         working-directory: mobile_kivy
         env:
           BUILDOZER_WARN_ON_ROOT: '0'
+          ANDROID_SDK_ROOT: ${{ env.ANDROID_SDK_ROOT }}
+          ANDROID_NDK_ROOT: ${{ env.ANDROID_NDK_ROOT }}
+          ANDROID_HOME: ${{ env.ANDROID_SDK_ROOT }}
         run: |
-          buildozer -v android debug
+          buildozer -v android debug 2>&1 | tee build.log
 
       - name: Upload APK artifact
         if: success()
