@@ -67,6 +67,30 @@ jobs:
         run: |
           buildozer -v android debug
 
+      - name: Env diagnostics
+        if: always()
+        env:
+          ANDROID_SDK_ROOT: ${{ env.ANDROIDSDK }}
+        run: |
+          echo "JAVA VERSION:" && java -version || true
+          echo "PYTHON VERSION:" && python --version || true
+          echo "SDK ROOT: $ANDROID_SDK_ROOT"
+          if [ -x "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" ]; then \
+            "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --list | head -n 200 || true; \
+          fi
+
+      - name: Upload build artifacts and logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: buildozer-logs-and-bin
+          path: |
+            mobile_kivy/.buildozer/**
+            mobile_kivy/bin/**
+            ${{ github.workspace }}/android-sdk/**
+            mobile_kivy/buildozer.spec
+          if-no-files-found: warn
+
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
