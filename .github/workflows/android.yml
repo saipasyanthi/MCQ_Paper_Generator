@@ -28,8 +28,8 @@ jobs:
       - name: Set up Java 17
         uses: actions/setup-java@v4
         with:
-            distribution: 'temurin'
-        java-version: '17'
+          distribution: 'temurin'
+          java-version: '17'
 
       - name: Install Android SDK CLI
         env:
@@ -41,8 +41,8 @@ jobs:
           unzip -q tools.zip
           mv cmdline-tools latest
           rm tools.zip
-          yes | "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --licenses
-          yes | "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" "platform-tools" "platforms;android-33" "build-tools;34.0.0"
+          echo "y" | "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --licenses
+          "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" "platform-tools" "platforms;android-33" "build-tools;34.0.0"
 
       - name: Export Android env
         env:
@@ -50,7 +50,9 @@ jobs:
         run: |
           echo "ANDROIDSDK=$ANDROID_SDK_ROOT" >> $GITHUB_ENV
           echo "ANDROIDNDK=$ANDROID_SDK_ROOT/ndk-bundle" >> $GITHUB_ENV
-          echo "PATH=$ANDROID_SDK_ROOT/platform-tools:$ANDROID_SDK_ROOT/build-tools/34.0.0:$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$PATH" >> $GITHUB_ENV
+          echo "$ANDROID_SDK_ROOT/platform-tools" >> $GITHUB_PATH
+          echo "$ANDROID_SDK_ROOT/build-tools/34.0.0" >> $GITHUB_PATH
+          echo "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin" >> $GITHUB_PATH
 
       - name: Install build tools
         run: |
@@ -75,8 +77,8 @@ jobs:
           echo "JAVA VERSION:" && java -version || true
           echo "PYTHON VERSION:" && python --version || true
           echo "SDK ROOT: $ANDROID_SDK_ROOT"
-          if [ -x "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" ]; then \
-            "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --list | head -n 200 || true; \
+          if [ -x "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" ]; then
+            "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --list | head -n 200 || true
           fi
 
       - name: Upload build artifacts and logs
