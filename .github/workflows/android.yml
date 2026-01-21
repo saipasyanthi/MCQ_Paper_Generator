@@ -31,49 +31,23 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Install Android SDK CLI
-        env:
-          ANDROID_SDK_ROOT: ${{ github.workspace }}/android-sdk
-        run: |
-          mkdir -p "$ANDROID_SDK_ROOT/cmdline-tools"
-          cd "$ANDROID_SDK_ROOT/cmdline-tools"
-          curl -sLo tools.zip https://dl.google.com/android/repository/commandlinetools-linux-10406996_latest.zip
-          unzip -q tools.zip
-          mv cmdline-tools latest
-          rm tools.zip
-          echo "y" | "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --licenses
-          "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" "platform-tools" "platforms;android-33" "build-tools;33.0.2" "ndk;25.2.9519653"
-          # Verify build-tools installed
-          if [ ! -f "$ANDROID_SDK_ROOT/build-tools/33.0.2/aidl" ]; then
-            echo "Build-tools 33.0.2 missing AIDL, attempting retry..."
-            "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --update
-            "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" "build-tools;33.0.2"
-          fi
-          if [ ! -f "$ANDROID_SDK_ROOT/build-tools/33.0.2/aidl" ]; then
-            echo "ERROR: AIDL still missing after retry"
-            ls -la "$ANDROID_SDK_ROOT/build-tools/33.0.2/" 2>&1 || echo "Directory not found"
-            exit 1
-          fi
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
 
-      - name: Export Android env
-        env:
-          ANDROID_SDK_ROOT: ${{ github.workspace }}/android-sdk
+      - name: Install Android SDK components
         run: |
-          echo "ANDROIDSDK=$ANDROID_SDK_ROOT" >> $GITHUB_ENV
-          echo "ANDROIDNDK=$ANDROID_SDK_ROOT/ndk/25.2.9519653" >> $GITHUB_ENV
-          echo "$ANDROID_SDK_ROOT/platform-tools" >> $GITHUB_PATH
-          echo "$ANDROID_SDK_ROOT/build-tools/33.0.2" >> $GITHUB_PATH
-          echo "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin" >> $GITHUB_PATH
-          # Symlink to path Buildozer expects so it doesn't try to redownload SDK
-          mkdir -p "$HOME/.buildozer/android/platform"
-          ln -s "$ANDROID_SDK_ROOT" "$HOME/.buildozer/android/platform/android-sdk" || true
-          echo "✓ Android SDK at: $ANDROID_SDK_ROOT"
-          echo "✓ NDK at: $ANDROID_SDK_ROOT/ndk/25.2.9519653"
+          sdkmanager "platform-tools" "platforms;android-33" "build-tools;33.0.2" "ndk;25.2.9519653"
+          yes | sdkmanager --licenses || true
 
-      - name: Verify AIDL exists
+      - name: Verify Android environment
+        env:
+          ANDROID_SDK_ROOT: ${{ env.ANDROID_SDK_ROOT }}
         run: |
-          which aidl || true
-          ls -la ${{ github.workspace }}/android-sdk/build-tools/33.0.2/ | grep aidl || (echo "AIDL missing" && exit 1)
+          echo "JAVA VERSION:" && java -version || true
+          echo "PYTHON VERSION:" && python --version || true
+          echo "SDK ROOT: $ANDROID_SDK_ROOT"
+          echo "BUILD-TOOLS:" && ls -la "$ANDROID_SDK_ROOT/build-tools/" || true
+          echo "AIDL location:" && which aidl || find "$ANDROID_SDK_ROOT/build-tools" -name "aidl" 2>/dev/null || true
 
       - name: Install build tools
         run: |
@@ -84,34 +58,23 @@ jobs:
         working-directory: mobile_kivy
         env:
           BUILDOZER_WARN_ON_ROOT: '0'
-          ANDROIDSDK: ${{ env.ANDROIDSDK }}
-          ANDROIDNDK: ${{ env.ANDROIDNDK }}
-          ANDROID_SDK_ROOT: ${{ env.ANDROIDSDK }}
         run: |
           buildozer -v android debug
 
-      - name: Env diagnostics
-        if: always()
-        env:
-          ANDROID_SDK_ROOT: ${{ env.ANDROIDSDK }}
-        run: |
-          echo "JAVA VERSION:" && java -version || true
-          echo "PYTHON VERSION:" && python --version || true
-          echo "SDK ROOT: $ANDROID_SDK_ROOT"
-          if [ -x "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" ]; then
-            "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --list | head -n 200 || true
-          fi
-
-      - name: Upload build artifacts and logs
-        if: always()
+      - name: Upload APK artifact
+        if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: buildozer-logs-and-bin
-          path: |
-            mobile_kivy/.buildozer/**
-            mobile_kivy/bin/**
-            ${{ github.workspace }}/android-sdk/**
-            mobile_kivy/buildozer.spec
+          name: android-apk
+          path: mobile_kivy/bin/*.apk
+          if-no-files-found: error
+
+      - name: Upload build logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: buildozer-logs
+          path: mobile_kivy/.buildozer/**
           if-no-files-found: warn
 
       - name: Upload APK artifact
