@@ -36,19 +36,28 @@ jobs:
         env:
           SKIP_JDK_VERSION_CHECK: 'true'
 
-      - name: Install Java XML binding for Android SDK tools
+      - name: Patch sdkmanager for Java 17 XML binding
         run: |
-          # Install jaxb-api to provide javax.xml.bind for Java 17
-          sudo apt-get update -qq
-          sudo apt-get install -y libjaxb-api-java 2>&1 | tail -3 || true
-          # Verify installation
-          JAXB_JAR=$(find /usr/share/java -name "jaxb-api*.jar" 2>/dev/null | head -1)
-          if [ -n "$JAXB_JAR" ]; then
-            echo "✓ JAXB installed at: $JAXB_JAR"
+          # The sdkmanager script doesn't work with Java 17 out of the box
+          # We need to patch it to add XML binding support
+          SDKMANAGER_BIN="/usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager"
+          if [ -f "$SDKMANAGER_BIN" ]; then
+            # Backup original
+            cp "$SDKMANAGER_BIN" "$SDKMANAGER_BIN.bak"
+            # Create patched version that adds --add-modules for XML binding
+            cat > "$SDKMANAGER_BIN" << 'PATCH_SCRIPT'
+          #!/bin/bash
+          # Patched sdkmanager for Java 17 XML binding support
+          BASEDIR=$(dirname "$(cd "$(dirname "$0")/.." && pwd -P)")/libexec
+          exec java \
+            --add-modules java.base,java.xml.bind \
+            -classpath "$BASEDIR/sdkmanager.jar:$BASEDIR/lib/*" \
+            com.android.sdklib.tool.sdkmanager.SdkManagerCli "$@"
+          PATCH_SCRIPT
+            chmod +x "$SDKMANAGER_BIN"
+            echo "✓ Patched sdkmanager for Java 17"
           else
-            echo "✗ JAXB not found after install, attempting workaround..."
-            # Java 17 on Ubuntu may not have jaxb by default, add it to boot classpath
-            echo "Using --add-modules java.xml.bind as fallback"
+            echo "Note: sdkmanager not yet at expected path (will be installed next)"
           fi
 
       - name: Accept Android SDK licenses
@@ -67,6 +76,20 @@ jobs:
 
       - name: Install Android SDK components
         run: |
+          # Patch sdkmanager again after installation (android-actions may have reset it)
+          SDKMANAGER_BIN="/usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager"
+          if [ -f "$SDKMANAGER_BIN" ]; then
+            cat > "$SDKMANAGER_BIN" << 'PATCH_SCRIPT'
+          #!/bin/bash
+          # Patched sdkmanager for Java 17 XML binding support
+          BASEDIR=$(dirname "$(cd "$(dirname "$0")/.." && pwd -P)")/libexec
+          exec java \
+            --add-modules java.base,java.xml.bind \
+            -classpath "$BASEDIR/sdkmanager.jar:$BASEDIR/lib/*" \
+            com.android.sdklib.tool.sdkmanager.SdkManagerCli "$@"
+          PATCH_SCRIPT
+            chmod +x "$SDKMANAGER_BIN"
+          fi
           sdkmanager "platform-tools" "platforms;android-33" "build-tools;33.0.2" "ndk;25.2.9519653"
           echo "✓ SDK components installed"
           # Verify build-tools
@@ -113,16 +136,6 @@ jobs:
           ANDROID_NDK_ROOT: ${{ env.ANDROID_NDK_ROOT }}
           ANDROID_HOME: ${{ env.ANDROID_SDK_ROOT }}
         run: |
-          # Create wrapper for sdkmanager that bypasses jaxb issue
-          mkdir -p "$HOME/bin"
-          cat > "$HOME/bin/sdkmanager" << 'WRAPPER'
-          #!/bin/bash
-          # Wrapper to pass --add-modules for Java 17 XML binding
-          exec java --add-modules java.xml.ws "$@"
-          WRAPPER
-          chmod +x "$HOME/bin/sdkmanager"
-          export PATH="$HOME/bin:$PATH"
-          
           # Inject SDK/NDK paths into buildozer.spec
           echo "" >> buildozer.spec
           echo "# CI-injected SDK paths" >> buildozer.spec
