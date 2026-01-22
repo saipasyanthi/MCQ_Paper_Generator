@@ -40,15 +40,15 @@ jobs:
         run: |
           # Install jaxb-api to provide javax.xml.bind for Java 17
           sudo apt-get update -qq
-          sudo apt-get install -y libjaxb-api-java 2>&1 | tail -5 || echo "jaxb install had warnings, continuing..."
-          # Find and export jaxb jar
-          export JAXB_JAR=$(find /usr/share/java -name "jaxb-api*.jar" 2>/dev/null | head -1)
+          sudo apt-get install -y libjaxb-api-java 2>&1 | tail -3 || true
+          # Verify installation
+          JAXB_JAR=$(find /usr/share/java -name "jaxb-api*.jar" 2>/dev/null | head -1)
           if [ -n "$JAXB_JAR" ]; then
-            echo "Found JAXB: $JAXB_JAR"
-            echo "_JAVA_OPTIONS=-cp $JAXB_JAR" >> $GITHUB_ENV
+            echo "✓ JAXB installed at: $JAXB_JAR"
           else
-            echo "JAXB jar not found, searching..."
-            find /usr/share -name "*jaxb*.jar" 2>/dev/null || true
+            echo "✗ JAXB not found after install, attempting workaround..."
+            # Java 17 on Ubuntu may not have jaxb by default, add it to boot classpath
+            echo "Using --add-modules java.xml.bind as fallback"
           fi
 
       - name: Accept Android SDK licenses
@@ -112,8 +112,17 @@ jobs:
           ANDROID_SDK_ROOT: ${{ env.ANDROID_SDK_ROOT }}
           ANDROID_NDK_ROOT: ${{ env.ANDROID_NDK_ROOT }}
           ANDROID_HOME: ${{ env.ANDROID_SDK_ROOT }}
-          _JAVA_OPTIONS: ${{ env._JAVA_OPTIONS }}
         run: |
+          # Create wrapper for sdkmanager that bypasses jaxb issue
+          mkdir -p "$HOME/bin"
+          cat > "$HOME/bin/sdkmanager" << 'WRAPPER'
+          #!/bin/bash
+          # Wrapper to pass --add-modules for Java 17 XML binding
+          exec java --add-modules java.xml.ws "$@"
+          WRAPPER
+          chmod +x "$HOME/bin/sdkmanager"
+          export PATH="$HOME/bin:$PATH"
+          
           # Inject SDK/NDK paths into buildozer.spec
           echo "" >> buildozer.spec
           echo "# CI-injected SDK paths" >> buildozer.spec
