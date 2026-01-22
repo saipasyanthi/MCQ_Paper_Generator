@@ -81,20 +81,29 @@ jobs:
 
       - name: Install Android SDK components
         run: |
-          # Patch sdkmanager again after installation (android-actions may have reset it)
-          SDKMANAGER_BIN="/usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager"
-          if [ -f "$SDKMANAGER_BIN" ]; then
-            cat > "$SDKMANAGER_BIN" << 'PATCH_SCRIPT'
+          # Ensure wrapper is in PATH (android-actions setup may have changed it)
+          export PATH="/usr/local/bin:$PATH"
+          
+          # Verify wrapper exists
+          ls -la /usr/local/bin/sdkmanager 2>/dev/null || echo "Wrapper not found, recreating..."
+          
+          # Reinstall wrapper if needed
+          if [ ! -f /usr/local/bin/sdkmanager ]; then
+            sudo bash -c 'cat > /usr/local/bin/sdkmanager << '"'"'WRAPPER'"'"'
           #!/bin/bash
-          # Patched sdkmanager for Java 17 XML binding support
-          BASEDIR=$(dirname "$(cd "$(dirname "$0")/.." && pwd -P)")/libexec
+          # Wrapper for sdkmanager to support Java 17 XML binding
           exec java \
             --add-modules java.base,java.xml.bind \
-            -classpath "$BASEDIR/sdkmanager.jar:$BASEDIR/lib/*" \
+            -classpath /usr/local/lib/android/sdk/cmdline-tools/latest/lib/sdkmanager.jar:/usr/local/lib/android/sdk/cmdline-tools/latest/lib/* \
             com.android.sdklib.tool.sdkmanager.SdkManagerCli "$@"
-          PATCH_SCRIPT
-            chmod +x "$SDKMANAGER_BIN"
+          WRAPPER
+          '
+            sudo chmod +x /usr/local/bin/sdkmanager
           fi
+          
+          echo "Using sdkmanager:"
+          which sdkmanager
+          
           sdkmanager "platform-tools" "platforms;android-33" "build-tools;33.0.2" "ndk;25.2.9519653"
           echo "✓ SDK components installed"
           # Verify build-tools
