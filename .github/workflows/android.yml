@@ -38,19 +38,28 @@ jobs:
 
       - name: Patch sdkmanager for Java 17 XML binding
         run: |
-          # Create a wrapper sdkmanager in /usr/local/bin to override the system one
-          # This avoids permission issues with patching the real binary
-          sudo mkdir -p /usr/local/bin
+          # Install jaxb-api library
+          sudo apt-get update -qq
+          sudo apt-get install -y libjaxb-api-java 2>&1 | tail -3 || true
           
-          # Find the real sdkmanager location
-          REAL_SDKMANAGER=$(which sdkmanager || echo "/usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager")
+          # Find the jaxb jar
+          JAXB_JAR=$(find /usr/share/java -name "jaxb-api*.jar" 2>/dev/null | head -1)
+          if [ -z "$JAXB_JAR" ]; then
+            echo "Warning: jaxb-api not found, attempting manual download..."
+            # Fallback: download jaxb-api directly
+            mkdir -p /usr/local/lib/jaxb
+            cd /usr/local/lib/jaxb
+            curl -s -L "https://repo1.maven.org/maven2/javax/xml/bind/jaxb-api/2.3.1/jaxb-api-2.3.1.jar" -o jaxb-api.jar || echo "Download failed"
+            JAXB_JAR="/usr/local/lib/jaxb/jaxb-api.jar"
+          fi
           
-          # Create wrapper that adds Java 17 XML binding support
+          # Create wrapper that adds jaxb to bootclasspath
           sudo bash -c 'cat > /usr/local/bin/sdkmanager << '"'"'WRAPPER'"'"'
           #!/bin/bash
-          # Wrapper for sdkmanager to support Java 17 XML binding
+          # Wrapper for sdkmanager to support Java 17 with jaxb-api
+          JAXB_JAR="'"${JAXB_JAR}"'"
           exec java \
-            --add-modules java.base,java.xml.ws \
+            -Xbootclasspath/p:"${JAXB_JAR}" \
             -classpath /usr/local/lib/android/sdk/cmdline-tools/latest/lib/sdkmanager.jar:/usr/local/lib/android/sdk/cmdline-tools/latest/lib/* \
             com.android.sdklib.tool.sdkmanager.SdkManagerCli "$@"
           WRAPPER
@@ -61,9 +70,8 @@ jobs:
           export PATH="/usr/local/bin:$PATH"
           echo "PATH=/usr/local/bin:$PATH" >> $GITHUB_ENV
           
-          echo "✓ sdkmanager wrapper installed"
+          echo "✓ sdkmanager wrapper installed with jaxb: ${JAXB_JAR}"
           which sdkmanager
-          ls -la /usr/local/bin/sdkmanager
 
       - name: Accept Android SDK licenses
         env:
@@ -89,11 +97,17 @@ jobs:
           
           # Reinstall wrapper if needed
           if [ ! -f /usr/local/bin/sdkmanager ]; then
+            JAXB_JAR=$(find /usr/share/java -name "jaxb-api*.jar" 2>/dev/null | head -1)
+            if [ -z "$JAXB_JAR" ]; then
+              JAXB_JAR="/usr/local/lib/jaxb/jaxb-api.jar"
+            fi
+            
             sudo bash -c 'cat > /usr/local/bin/sdkmanager << '"'"'WRAPPER'"'"'
           #!/bin/bash
-          # Wrapper for sdkmanager to support Java 17 XML binding
+          # Wrapper for sdkmanager to support Java 17 with jaxb-api
+          JAXB_JAR="'"${JAXB_JAR}"'"
           exec java \
-            --add-modules java.base,java.xml.ws \
+            -Xbootclasspath/p:"${JAXB_JAR}" \
             -classpath /usr/local/lib/android/sdk/cmdline-tools/latest/lib/sdkmanager.jar:/usr/local/lib/android/sdk/cmdline-tools/latest/lib/* \
             com.android.sdklib.tool.sdkmanager.SdkManagerCli "$@"
           WRAPPER
