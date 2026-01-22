@@ -38,27 +38,32 @@ jobs:
 
       - name: Patch sdkmanager for Java 17 XML binding
         run: |
-          # The sdkmanager script doesn't work with Java 17 out of the box
-          # We need to patch it to add XML binding support
-          SDKMANAGER_BIN="/usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager"
-          if [ -f "$SDKMANAGER_BIN" ]; then
-            # Backup original
-            cp "$SDKMANAGER_BIN" "$SDKMANAGER_BIN.bak"
-            # Create patched version that adds --add-modules for XML binding
-            cat > "$SDKMANAGER_BIN" << 'PATCH_SCRIPT'
+          # Create a wrapper sdkmanager in /usr/local/bin to override the system one
+          # This avoids permission issues with patching the real binary
+          sudo mkdir -p /usr/local/bin
+          
+          # Find the real sdkmanager location
+          REAL_SDKMANAGER=$(which sdkmanager || echo "/usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager")
+          
+          # Create wrapper that adds Java 17 XML binding support
+          sudo bash -c 'cat > /usr/local/bin/sdkmanager << '"'"'WRAPPER'"'"'
           #!/bin/bash
-          # Patched sdkmanager for Java 17 XML binding support
-          BASEDIR=$(dirname "$(cd "$(dirname "$0")/.." && pwd -P)")/libexec
+          # Wrapper for sdkmanager to support Java 17 XML binding
           exec java \
             --add-modules java.base,java.xml.bind \
-            -classpath "$BASEDIR/sdkmanager.jar:$BASEDIR/lib/*" \
+            -classpath /usr/local/lib/android/sdk/cmdline-tools/latest/lib/sdkmanager.jar:/usr/local/lib/android/sdk/cmdline-tools/latest/lib/* \
             com.android.sdklib.tool.sdkmanager.SdkManagerCli "$@"
-          PATCH_SCRIPT
-            chmod +x "$SDKMANAGER_BIN"
-            echo "✓ Patched sdkmanager for Java 17"
-          else
-            echo "Note: sdkmanager not yet at expected path (will be installed next)"
-          fi
+          WRAPPER
+          '
+          sudo chmod +x /usr/local/bin/sdkmanager
+          
+          # Ensure this wrapper is found first
+          export PATH="/usr/local/bin:$PATH"
+          echo "PATH=/usr/local/bin:$PATH" >> $GITHUB_ENV
+          
+          echo "✓ sdkmanager wrapper installed"
+          which sdkmanager
+          ls -la /usr/local/bin/sdkmanager
 
       - name: Accept Android SDK licenses
         env:
