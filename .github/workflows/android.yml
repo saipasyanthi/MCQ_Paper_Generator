@@ -41,13 +41,14 @@ jobs:
           # Install jaxb-api to provide javax.xml.bind for Java 17
           sudo apt-get update -qq
           sudo apt-get install -y libjaxb-api-java 2>&1 | tail -5 || echo "jaxb install had warnings, continuing..."
-          # Set JAVA_OPTS for Buildozer to find jaxb
+          # Find and export jaxb jar
           export JAXB_JAR=$(find /usr/share/java -name "jaxb-api*.jar" 2>/dev/null | head -1)
           if [ -n "$JAXB_JAR" ]; then
             echo "Found JAXB: $JAXB_JAR"
-            echo "JAVA_OPTS=-cp $JAXB_JAR" >> $GITHUB_ENV
+            echo "_JAVA_OPTIONS=-cp $JAXB_JAR" >> $GITHUB_ENV
           else
-            echo "Warning: jaxb-api not found, will attempt build anyway"
+            echo "JAXB jar not found, searching..."
+            find /usr/share -name "*jaxb*.jar" 2>/dev/null || true
           fi
 
       - name: Accept Android SDK licenses
@@ -111,6 +112,7 @@ jobs:
           ANDROID_SDK_ROOT: ${{ env.ANDROID_SDK_ROOT }}
           ANDROID_NDK_ROOT: ${{ env.ANDROID_NDK_ROOT }}
           ANDROID_HOME: ${{ env.ANDROID_SDK_ROOT }}
+          _JAVA_OPTIONS: ${{ env._JAVA_OPTIONS }}
         run: |
           # Inject SDK/NDK paths into buildozer.spec
           echo "" >> buildozer.spec
